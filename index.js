@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 var cors = require('cors')
 
@@ -29,19 +29,69 @@ async function run(){
     await client.connect();
     const mobileCollection = client.db("smartphoneinventory").collection("mobile");
 
-    //firstsixmobile data  
-    app.get("/firstmobile", async (req, res) => {
-      const q = req.query;
-     
+    //firstsixmobile data  & all mobile data
+    app.get("/mobile", async (req, res) => {
+      const  limit=Number(req.query.limit);
+    //  console.log(limit)
 
-      const cursor = mobileCollection.find( q);
+      const cursor = mobileCollection.find( );
 
-      const result = await cursor.toArray();
+      const result = await cursor.limit(limit).toArray();
 
       res.send(result);
 
 
     });
+
+    //post mobile data
+    app.post("/createmobile", async(req, res)=>{
+      const data=req.body;
+      console.log(data)
+
+      const result = await mobileCollection.insertOne(data);
+      res.send(result)
+    })
+
+  //update mobile data
+  app.put("/mobile/:id", async (req, res) => {
+    const id = req.params.id;
+    const data = req.body;
+    
+    const filter = { _id: ObjectId(id) };
+    const options = { upsert: true };
+
+    const updateDoc = {
+      $set: {
+        // name: data.name,
+        // des: data.des,
+        // price: data.price,
+        // supplierName: data.supplierName,
+        // image: data.image,
+        quantity: data.quantity,
+
+
+      },
+    };
+
+    const result = await mobileCollection.updateOne(
+      filter,
+      updateDoc,
+      options
+    );
+    res.send(result);
+
+  })
+
+  //delete mobile data
+  app.delete("/mobile/:id", async (req, res) => {
+    const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+
+      const result = await mobileCollection.deleteOne(filter);
+
+      res.send(result);
+  })
+
 
     console.log("db")
   }
