@@ -29,6 +29,15 @@ async function run(){
     await client.connect();
     const mobileCollection = client.db("smartphoneinventory").collection("mobile");
 
+    //login
+    app.post("/login", (req, res) => {
+      // const email = req.body;
+
+      // const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
+
+      // res.send({ token })
+  })
+
     //firstsixmobile data  & all mobile data
     app.get("/mobile", async (req, res) => {
       const  limit=Number(req.query.limit);
@@ -42,6 +51,15 @@ async function run(){
 
 
     });
+
+    //get one data details
+    app.get('/mobile/:id', async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: ObjectId(id) };
+      const service = await mobileCollection.findOne(query);
+      res.send(service);
+  });
 
     //post mobile data
     app.post("/createmobile", async(req, res)=>{
