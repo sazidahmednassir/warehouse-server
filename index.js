@@ -35,9 +35,9 @@ async function run(){
       const email = req.body;
       console.log(email);
 
-      // const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
-
-      // res.send({ token })
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
+      console.log(token)
+      res.send({ token })
   })
 
     //firstsixmobile data  & all mobile data
@@ -67,9 +67,38 @@ async function run(){
     app.post("/createmobile", async(req, res)=>{
       const data=req.body;
       console.log(data)
+      const tokenInfo = req.headers.authorization;
+      console.log(tokenInfo)
+       const [email, accessToken] = tokenInfo.split(" ")
 
-      const result = await mobileCollection.insertOne(data);
-      res.send(result)
+       const decoded = verifyToken(accessToken)
+
+       if (email === decoded.email) {
+        const result = await mobileCollection.insertOne(data);
+           res.send ({ success: 'Product Upload Successfully' })
+       }
+       else {
+           res.send({ success: 'UnAuthoraized Access' })
+       }
+    
+    })
+
+    //get mobile data using jwt
+    app.get("/myitem", async (req, res) => {
+      const tokenInfo = req.headers.authorization;
+
+            console.log(tokenInfo)
+            const [email, accessToken] = tokenInfo.split(" ")
+            // console.log(email, accessToken)
+
+            const decoded = verifyToken(accessToken)
+            if (email === decoded.email) {
+              const items = await mobileCollection.find({email:email}).toArray();
+              res.send(items);
+          }
+          else {
+              res.send({ success: 'UnAuthoraized Access' })
+          }
     })
 
   //update mobile data
@@ -132,3 +161,18 @@ app.get('/', (req, res) => {
   app.listen(port, () => {
     console.log(`app listening on port ${port}`)
   })
+
+  // verify token function
+function verifyToken(token) {
+  let email;
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+      if (err) {
+          email = 'Invalid email'
+      }
+      if (decoded) {
+          console.log(decoded)
+          email = decoded
+      }
+  });
+  return email;
+}
