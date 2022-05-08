@@ -40,6 +40,15 @@ async function run(){
       res.send({ token })
   })
 
+    app.post("/register", (req, res) => {
+      const email = req.body;
+      console.log(email);
+
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
+      console.log(token)
+      res.send({ token })
+  })
+
     //firstsixmobile data  & all mobile data
     app.get("/mobile", async (req, res) => {
       const  limit=Number(req.query.limit);
